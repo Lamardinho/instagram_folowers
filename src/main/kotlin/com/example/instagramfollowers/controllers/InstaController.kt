@@ -1,6 +1,5 @@
 package com.example.instagramfollowers.controllers
 
-import com.example.instagramfollowers.dto.NotMutualDTO
 import com.example.instagramfollowers.entity.Followers
 import com.example.instagramfollowers.entity.Following
 import com.example.instagramfollowers.entity.NotMutual
@@ -15,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.FileReader
 
+/**
+ * Getting a list of non-reciprocal subscribers.
+ */
 @RestController
 @RequestMapping("/api/insta")
 class InstaController(
@@ -22,44 +24,30 @@ class InstaController(
     private val followingRepository: FollowingRepository,
     private val notMutualRepository: NotMutualRepository
 ) {
-    @GetMapping("/read_from_db")
-    fun readFromDb(): ArrayList<NotMutualDTO> {
-        //notMutualRepository.deleteAll()
-        val followingList = followingRepository.findAll()
-        val notMutual = ArrayList<Following>()
-
-        followingList.map {
-            val check = followersRepository.findByValue(it.value)
-            if (check == null) notMutual.add(it)
-        }
-
-        val result = ArrayList<NotMutualDTO>()
-        notMutual.map {
-            result.add(NotMutualDTO(id = it.id, user = it.value))
-            //notMutualRepository.save(NotMutual(user = it.user))
-        }
-
-        return result
-    }
-
+    /**
+     * Read 2 files: "followers" and "following", write to the database and get a list of motherfuckers.
+     */
     @GetMapping("read_from_file")
-    fun readFromFile(): List<String> {
+    fun readFromFile(): Set<String> {
         val result = ArrayList<String>()
-        // чистим всё
+        // clear all tables in database
         followersRepository.deleteAll()
         followingRepository.deleteAll()
         notMutualRepository.deleteAll()
 
-        val followersValues = readJson(filePath = FOLLOWERS_JSON, relationshipsType = FOLLOWERS)
+        // forming and save list of "followers"
+        val followersValues = readJsonFileAndFormingUrls(filePath = FOLLOWERS_JSON, relationshipsType = FOLLOWERS)
         followersValues.map {
             followersRepository.save(Followers(value = it))
         }
 
-        val followingValues = readJson(filePath = FOLLOWING_JSON, relationshipsType = FOLLOWING)
+        // forming and save list of "following"
+        val followingValues = readJsonFileAndFormingUrls(filePath = FOLLOWING_JSON, relationshipsType = FOLLOWING)
         val followingList = followingValues.map {
             followingRepository.save(Following(value = it))
         }
 
+        // we look for each "following" in the "followers" list, if we don’t find it, then write it down to the "motherfuckers" list.
         followingList.map {
             val check = followersRepository.findByValue(it.value)
             if (check == null) {
@@ -71,10 +59,10 @@ class InstaController(
 
         list.map { result.add(it.value) }
 
-        return result
+        return result.toSet()
     }
 
-    private fun readJson(filePath: String, relationshipsType: String): ArrayList<String> {
+    private fun readJsonFileAndFormingUrls(filePath: String, relationshipsType: String): ArrayList<String> {
         val result = ArrayList<String>()
         FileReader(filePath).use { file ->
             val obj = JSONParser().parse(file)
