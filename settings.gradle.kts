@@ -1,1 +1,1 @@
-rootProject.name = "instagram_followers"
+rootProject.name = "instagramfollowers"

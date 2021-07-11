@@ -1,0 +1,19 @@
+app:
+  datasource:
+    instagramfollowers:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://localhost:5454/instagramfollowers
+      username: postgres
+      password: postgres
+
+spring:
+  jpa:
+    generate-ddl: on  # "off" для отмены авто-генерации БД через "JPA"
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        ddl-auto: validate
+    show-sql: off
+  liquibase:
+    enabled: off      # "on" для вкл авто-генерации БД через "liquibase"
+    change-log: classpath:db/changelog/followers-db-master.xml

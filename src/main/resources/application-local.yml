@@ -1,0 +1,7 @@
+app:
+  datasource:
+    instagramfollowers:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://localhost:5400/instagramfollowers
+      username: postgres
+      password: postgres

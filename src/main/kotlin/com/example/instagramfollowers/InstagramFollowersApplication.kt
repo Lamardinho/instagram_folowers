@@ -1,4 +1,4 @@
-package com.example.instagram_followers
+package com.example.instagramfollowers
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

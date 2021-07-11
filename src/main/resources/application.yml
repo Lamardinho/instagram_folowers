@@ -1,0 +1,45 @@
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+  application:
+    name: instagramfollowers
+  jpa:
+    generate-ddl: on
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        ddl-auto: validate
+  liquibase:
+    enabled: off
+    change-log: classpath:db/changelog/followers-db-master.xml
+
+app:
+  datasource:
+    instagramfollowers:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME:instagramfollowers}?currentSchema=public
+      username: ${DATABASE_USER}
+      password: ${DATABASE_PASSWORD}
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: ERROR
+      type:
+        descriptor:
+          sql:
+            BasicBinder: ERROR
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: ERROR
+            StatementCreatorUtils: ERROR
+
+springdoc:
+  packagesToScan: com.example.instagramfollowers
+  swagger-ui:
+    disable-swagger-default-url: true
