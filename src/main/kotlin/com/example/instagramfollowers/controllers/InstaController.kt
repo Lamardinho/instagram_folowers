@@ -74,7 +74,7 @@ class InstaController(
                 val mainArray = jsonObject[relationshipsType] as JSONArray
                 mainArray.map { map1 ->
                     val stringListDataObj = map1 as JSONObject
-                    val stringListDataArray = stringListDataObj["string_list_data"] as JSONArray
+                    val stringListDataArray = stringListDataObj[STRING_LIST_DATA] as JSONArray
                     stringListDataArray.map { sld ->
                         val valueObj = sld as JSONObject
                         result.add(valueObj["href"] as String)
@@ -90,5 +90,6 @@ class InstaController(
         private const val FOLLOWING_JSON = "following.json"
         private const val FOLLOWERS = "relationships_followers"
         private const val FOLLOWING = "relationships_following"
+        private const val STRING_LIST_DATA = "string_list_data"
     }
 }
