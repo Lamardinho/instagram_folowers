@@ -6,6 +6,9 @@ import com.example.instagramfollowers.entity.User
 import com.example.instagramfollowers.repositories.SubscriberRepository
 import com.example.instagramfollowers.util.AppConstants
 import com.example.instagramfollowers.util.AppMsg
+import lombok.extern.slf4j.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -26,10 +29,15 @@ interface FollowersService {
  */
 @Service
 @Transactional
+@Slf4j
 class FollowersServiceImpl(
     private val subscriberRepository: SubscriberRepository,
     private val readJsonService: ReadJsonService,
 ) : FollowersService {
+
+    companion object {
+        val LOGGER: Logger = LoggerFactory.getLogger(FollowersServiceImpl::class.java)
+    }
 
     override fun readAndSaveInDB(user: User, followersPath: String, followingPath: String): String {
         val commonDate = LocalDate.now()
@@ -43,7 +51,9 @@ class FollowersServiceImpl(
             followingPath, AppConstants.RELATIONSHIPS_FOLLOWING, user, commonDate, SubscriberType.FOLLOWING
         )
 
-        return "Saved followers: ${followers.size}, saved followings: ${followings.size}"
+        val info = "Saved followers: ${followers.size}, saved followings: ${followings.size}"
+        LOGGER.info(info)
+        return info
     }
 
     /**
@@ -68,6 +78,8 @@ class FollowersServiceImpl(
                 result.add(following.href)
             }
         }
+
+        LOGGER.info("found unsubscribers: ${result.size}")
         return result.sortedBy { it }
     }
 

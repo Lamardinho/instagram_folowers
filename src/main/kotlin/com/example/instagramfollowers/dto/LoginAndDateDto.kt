@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class LoginAndDateDto(
 
-  //  val userLogin: String,
+    //  val userLogin: String,
 
     @JsonFormat(pattern = "YYYY-MM-dd")
     val date: LocalDate
