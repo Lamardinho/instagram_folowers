@@ -31,7 +31,12 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.1.6")
     implementation("org.postgresql:postgresql:42.2.9")
     implementation(kotlin("stdlib"))
-    implementation("org.mapstruct:mapstruct:1.4.1.Final")
+
+    implementation("org.projectlombok:lombok:1.18.22")
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
+    implementation("org.mapstruct:mapstruct:1.4.2.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
+
     implementation("org.liquibase:liquibase-core")
     implementation("com.vladmihalcea:hibernate-types-52:2.2.2")
     // JasperReports

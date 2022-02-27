@@ -1,5 +1,6 @@
 package com.example.instagramfollowers.config
 
+import com.example.instagramfollowers.util.AppConstants
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -9,17 +10,18 @@ import javax.sql.DataSource
 
 @Configuration
 class DataSourceConfig {
+
     @Bean
     @Primary
-    @ConfigurationProperties("app.datasource.instagramfollowers")
-    fun weblibraryDataSourceProperties(): DataSourceProperties {
+    @ConfigurationProperties(AppConstants.APP_DATASOURCE)
+    fun appDataSourceProperties(): DataSourceProperties {
         return DataSourceProperties()
     }
 
     @Bean
     @Primary
-    @ConfigurationProperties("app.datasource.instagramfollowers.configuration")
-    fun weblibraryDataSource(): DataSource {
-        return weblibraryDataSourceProperties().initializeDataSourceBuilder().build()
+    @ConfigurationProperties(AppConstants.APP_DATASOURCE_CONFIGURATION)
+    fun appDataSource(): DataSource {
+        return appDataSourceProperties().initializeDataSourceBuilder().build()
     }
 }
