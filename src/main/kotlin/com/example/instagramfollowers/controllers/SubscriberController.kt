@@ -1,43 +1,63 @@
 package com.example.instagramfollowers.controllers
 
+import com.example.instagramfollowers.dictionaries.SubscriberType
 import com.example.instagramfollowers.dto.FollowersAndFollowingPathsDto
-import com.example.instagramfollowers.services.FollowersService
+import com.example.instagramfollowers.services.FollowersReaderService
+import com.example.instagramfollowers.services.FollowersSaverService
 import com.example.instagramfollowers.services.UserService
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 
-/**
- * Getting a list of non-reciprocal subscribers.
- */
 @RestController
 @RequestMapping("/api/insta/subscribers")
 class SubscriberController(
-    private val followersService: FollowersService,
-    private val userService: UserService
+    private val followersSaverService: FollowersSaverService,
+    private val followersReaderService: FollowersReaderService,
+    private val userService: UserService,
 ) {
-    /**
-     * Read 2 files: "followers" and "following", write to the database.
-     */
+
+    companion object {
+        private const val LOGIN = "slezkin23"
+    }
+
     @PostMapping("savefromfile")
-    @Operation(description = "read and save all subscribers from files")
+    @Operation(description = "Read 2 files: \"followers\" and \"following\", write to the database.")
     fun readFromFileAndSaveInDb(@RequestBody followersAndFollowingPathsDto: FollowersAndFollowingPathsDto): String {
-        return followersService.readAndSaveInDB(
-            userService.findByUserLogin("slezkin23"),   //todo
+        return followersSaverService.readAndSaveInDB(
+            userService.findByUserLogin(LOGIN),   //todo
             followersAndFollowingPathsDto.followersPath,
-            followersAndFollowingPathsDto.followingsPath
+            followersAndFollowingPathsDto.followingsPath,
+            LocalDate.now()                      //todo
         )
     }
 
-    /**
-     * Получить список невзаимных подписчиков
-     */
     @GetMapping("unsubscribers")
-    @Operation(description = "get non-reciprocal subscribers")
+    @Operation(description = "Получить список невзаимных подписчиков")
     fun getNonReciprocalSubscribers(): List<String> {   //todo юзать LoginAndDateDto
-        return followersService.getNonReciprocalSubscribers(
-            userService.findByUserLogin("slezkin23"),
+        return followersReaderService.getNonReciprocalSubscribers(
+            userService.findByUserLogin(LOGIN),   //todo
             LocalDate.now()
         )
+    }
+
+    @GetMapping("getNewUnSubscribers")
+    @Operation(description = "Сравнить последную и предпоследную загрузку и выдать список новых отписчиков")
+    fun getNewUnSubscribers(): List<String> {
+        val result = followersReaderService.getNewUnSubscribers(
+            userService.findByUserLogin(LOGIN), SubscriberType.FOLLOWER
+        )
+        result.map { println(it) }
+        return result
+    }
+
+    @GetMapping("getNewUnSubscribersFromFriends")
+    @Operation(description = "Сравнить последную и предпоследную загрузку и выдать список новых отписчиков из друзей")
+    fun getNewUnSubscribersFromFriends(): List<String> {
+        val result = followersReaderService.getNewUnSubscribers(
+            userService.findByUserLogin(LOGIN), SubscriberType.FRIEND
+        )
+        result.map { println(it) }
+        return result
     }
 }

@@ -16,11 +16,8 @@ import java.time.LocalDate
 /**
  * Contract
  */
-interface FollowersService {
-
-    fun readAndSaveInDB(user: User, followersPath: String, followingPath: String): String
-
-    fun getNonReciprocalSubscribers(user: User, date: LocalDate): List<String>
+interface FollowersSaverService {
+    fun readAndSaveInDB(user: User, followersPath: String, followingPath: String, commonDate: LocalDate): String
 }
 
 
@@ -28,20 +25,20 @@ interface FollowersService {
  * Implementation
  */
 @Service
-@Transactional
 @Slf4j
-class FollowersServiceImpl(
+class FollowersSaverServiceImpl(
     private val subscriberRepository: SubscriberRepository,
     private val readJsonService: ReadJsonService,
-) : FollowersService {
+) : FollowersSaverService {
 
     companion object {
-        val LOGGER: Logger = LoggerFactory.getLogger(FollowersServiceImpl::class.java)
+        val LOGGER: Logger = LoggerFactory.getLogger(FollowersSaverServiceImpl::class.java)
     }
 
-    override fun readAndSaveInDB(user: User, followersPath: String, followingPath: String): String {
-        val commonDate = LocalDate.now()
-
+    @Transactional
+    override fun readAndSaveInDB(
+        user: User, followersPath: String, followingPath: String, commonDate: LocalDate
+    ): String {
         // forming and save list of "followers"
         val followers = commonReadAndSave(
             followersPath, AppConstants.RELATIONSHIPS_FOLLOWERS, user, commonDate, SubscriberType.FOLLOWER
@@ -51,36 +48,29 @@ class FollowersServiceImpl(
             followingPath, AppConstants.RELATIONSHIPS_FOLLOWING, user, commonDate, SubscriberType.FOLLOWING
         )
 
-        val info = "Saved followers: ${followers.size}, saved followings: ${followings.size}"
-        LOGGER.info(info)
-        return info
-    }
-
-    /**
-     * We look for each "following" in the "followers" list, if we don’t find it,
-     * then write it down to the "unSubscribers" list.
-     */
-    override fun getNonReciprocalSubscribers(user: User, date: LocalDate): List<String> {
-        val result = ArrayList<String>()
-
-        val followings = subscriberRepository
-            .findAllByUserIdAndDateRecordingAndSubscriberType(user.id!!, date, SubscriberType.FOLLOWING)
-
-        val followers = subscriberRepository
-            .findAllByUserIdAndDateRecordingAndSubscriberType(user.id!!, date, SubscriberType.FOLLOWER)
-
+        val unsubscribers = arrayListOf<String>()
+        val friends = arrayListOf<String>()
         followings.map { following ->
             val set = followers.filter { it.href == following.href }.toSet()  // находим именно такого
             if (set.size > 1) {
                 throw RuntimeException(AppMsg.FOLLOWER_UNIQUE_NOT_DUPLICATED)
             }
             if (set.isEmpty()) {    // если не нашли, значит - невзаимный подписчик
-                result.add(following.href)
+                val unsubscriber = saveSubscriber(user, following.href, commonDate, SubscriberType.UNSUBSCRIBER)
+                unsubscribers.add(unsubscriber.href)
+            } else {
+                val friend = saveSubscriber(user, following.href, commonDate, SubscriberType.FRIEND)
+                friends.add(friend.href)
             }
         }
 
-        LOGGER.info("found unsubscribers: ${result.size}")
-        return result.sortedBy { it }
+        val info = "" +
+                "\nSaved followers: ${followers.size}, " +
+                "\nsaved followings: ${followings.size} , " +
+                "\nsaved unsubscribers: ${unsubscribers.size} , " +
+                "\nsaved friends: ${friends.size}"
+        LOGGER.info(info)
+        return info
     }
 
     private fun commonReadAndSave(
@@ -98,5 +88,16 @@ class FollowersServiceImpl(
             objectField = AppConstants.HREF
         ).map { Subscriber(user = user, href = it, dateRecording = date, subscriberType = subscriberType) }
         return subscriberRepository.saveAll(followers)
+    }
+
+    private fun saveSubscriber(
+        user: User,
+        href: String,
+        date: LocalDate,
+        subscriberType: SubscriberType
+    ): Subscriber {
+        return subscriberRepository.save(
+            Subscriber(user = user, href = href, dateRecording = date, subscriberType = subscriberType)
+        )
     }
 }
