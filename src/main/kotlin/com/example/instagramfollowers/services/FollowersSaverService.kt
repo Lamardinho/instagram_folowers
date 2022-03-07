@@ -11,13 +11,19 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 
 /**
  * Contract
  */
 interface FollowersSaverService {
-    fun readAndSaveInDB(user: User, followersPath: String, followingPath: String, commonDate: LocalDate): String
+    fun readAndSaveInDB(
+        user: User,
+        followersFile: MultipartFile,
+        followingFile: MultipartFile,
+        commonDate: LocalDate
+    ): String
 }
 
 
@@ -37,15 +43,15 @@ class FollowersSaverServiceImpl(
 
     @Transactional
     override fun readAndSaveInDB(
-        user: User, followersPath: String, followingPath: String, commonDate: LocalDate
+        user: User, followersFile: MultipartFile, followingFile: MultipartFile, commonDate: LocalDate
     ): String {
         // forming and save list of "followers"
         val followers = commonReadAndSave(
-            followersPath, AppConstants.RELATIONSHIPS_FOLLOWERS, user, commonDate, SubscriberType.FOLLOWER
+            followersFile, AppConstants.RELATIONSHIPS_FOLLOWERS, user, commonDate, SubscriberType.FOLLOWER
         )
         // forming and save list of "following"
         val followings = commonReadAndSave(
-            followingPath, AppConstants.RELATIONSHIPS_FOLLOWING, user, commonDate, SubscriberType.FOLLOWING
+            followingFile, AppConstants.RELATIONSHIPS_FOLLOWING, user, commonDate, SubscriberType.FOLLOWING
         )
 
         val unsubscribers = arrayListOf<String>()
@@ -74,7 +80,7 @@ class FollowersSaverServiceImpl(
     }
 
     private fun commonReadAndSave(
-        filePath: String,
+        file: MultipartFile,
         mainDataArrayName: String,
         user: User,
         date: LocalDate,
@@ -82,7 +88,7 @@ class FollowersSaverServiceImpl(
     ): List<Subscriber> {
         // forming and save list of "followers"
         val followers = readJsonService.readJsonFileAndFormingUrls(
-            filePath = filePath,
+            file = file,
             mainJsonObject = mainDataArrayName,
             innerJsonObject = AppConstants.STRING_LIST_DATA,
             objectField = AppConstants.HREF

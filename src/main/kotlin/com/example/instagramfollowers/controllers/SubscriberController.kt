@@ -1,12 +1,13 @@
 package com.example.instagramfollowers.controllers
 
 import com.example.instagramfollowers.dictionaries.SubscriberType
-import com.example.instagramfollowers.dto.FollowersAndFollowingPathsDto
 import com.example.instagramfollowers.services.FollowersReaderService
 import com.example.instagramfollowers.services.FollowersSaverService
 import com.example.instagramfollowers.services.UserService
 import io.swagger.v3.oas.annotations.Operation
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 
 @RestController
@@ -21,13 +22,17 @@ class SubscriberController(
         private const val LOGIN = "slezkin23"
     }
 
-    @PostMapping("savefromfile")
-    @Operation(description = "Read 2 files: \"followers\" and \"following\", write to the database.")
-    fun readFromFileAndSaveInDb(@RequestBody followersAndFollowingPathsDto: FollowersAndFollowingPathsDto): String {
+    @PostMapping("savefromfile", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(description = "Read 2 files: followers and following, write to the database.")
+    fun readFromFileAndSaveInDb(
+        //  @RequestBody followersAndFollowingPathsDto: FollowersAndFollowingPathsDto,
+        @RequestParam("followers") followers: MultipartFile,
+        @RequestParam("followings") followings: MultipartFile
+    ): String {
         return followersSaverService.readAndSaveInDB(
             userService.findByUserLogin(LOGIN),   //todo
-            followersAndFollowingPathsDto.followersPath,
-            followersAndFollowingPathsDto.followingsPath,
+            followers,
+            followings,
             LocalDate.now()                      //todo
         )
     }

@@ -4,6 +4,9 @@ import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.FileReader
 
 /**
@@ -11,12 +14,15 @@ import java.io.FileReader
  */
 interface ReadJsonService {
     /**
-     * @param filePath - путь к файлу
+     * @param file - путь к файлу
      * @param mainJsonObject - гланвый объект в котором находится список объектов
      * @param innerJsonObject - вложенные обхекты
      */
     fun readJsonFileAndFormingUrls(
-        filePath: String, mainJsonObject: String, innerJsonObject: String, objectField: String
+        file: MultipartFile,
+        mainJsonObject: String,
+        innerJsonObject: String,
+        objectField: String
     ): ArrayList<String>
 }
 
@@ -28,11 +34,23 @@ interface ReadJsonService {
 class ReadJsonServiceImpl : ReadJsonService {
 
     override fun readJsonFileAndFormingUrls(
-        filePath: String, mainJsonObject: String, innerJsonObject: String, objectField: String
+        file: MultipartFile, mainJsonObject: String, innerJsonObject: String, objectField: String
     ): ArrayList<String> {
         val result = ArrayList<String>()
-        FileReader(filePath).use { file ->
-            val obj = JSONParser().parse(file)
+
+        var savedFile: File
+        ByteArrayOutputStream().use {
+            val filePath = "C:/Users/slezk/Downloads/jsonsSaved/" + file.originalFilename
+            val checked = File(filePath)
+            if (checked.exists()) {
+                throw RuntimeException("Такой файл уже был загружен")   //todo
+            }
+            savedFile = File(filePath)
+            file.transferTo(savedFile)
+        }
+
+        FileReader(savedFile).use {
+            val obj = JSONParser().parse(it)
             val commonJsArray = JSONArray()
             commonJsArray.add(obj)
 
