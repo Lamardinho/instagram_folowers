@@ -1,7 +1,6 @@
 package com.example.instagramfollowers.controllers
 
 import com.example.instagramfollowers.dictionaries.SubscriberType
-import com.example.instagramfollowers.dto.FollowersDto
 import com.example.instagramfollowers.services.FollowersReaderService
 import com.example.instagramfollowers.services.FollowersSaverService
 import com.example.instagramfollowers.services.SubscribersReportService
@@ -40,13 +39,13 @@ class SubscriberController(
         )
     }
 
-    @PostMapping("read_file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @Operation(description = "Read 2 files: followers and following")
+    @PostMapping("read_files_and_get_non_reciprocal_subscribers", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(description = "read 2 files and get non reciprocal subscribers")
     fun readFile(
         @RequestParam("followers") followers: MultipartFile,
         @RequestParam("followings") followings: MultipartFile
-    ): FollowersDto {
-        return subscribersReportService.readJsonFile(followers, followings)
+    ): List<String> {
+        return subscribersReportService.readJsonFilesAndGetNonReciprocalSubscribers(followers, followings)
     }
 
     @GetMapping("unsubscribers")
