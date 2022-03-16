@@ -1,8 +1,10 @@
 package com.example.instagramfollowers.controllers
 
 import com.example.instagramfollowers.dictionaries.SubscriberType
+import com.example.instagramfollowers.dto.FollowersDto
 import com.example.instagramfollowers.services.FollowersReaderService
 import com.example.instagramfollowers.services.FollowersSaverService
+import com.example.instagramfollowers.services.SubscribersReportService
 import com.example.instagramfollowers.services.UserService
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.MediaType
@@ -15,6 +17,7 @@ import java.time.LocalDate
 class SubscriberController(
     private val followersSaverService: FollowersSaverService,
     private val followersReaderService: FollowersReaderService,
+    private val subscribersReportService: SubscribersReportService,
     private val userService: UserService,
 ) {
 
@@ -35,6 +38,15 @@ class SubscriberController(
             followings,
             LocalDate.now()                      //todo
         )
+    }
+
+    @PostMapping("read_file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(description = "Read 2 files: followers and following")
+    fun readFile(
+        @RequestParam("followers") followers: MultipartFile,
+        @RequestParam("followings") followings: MultipartFile
+    ): FollowersDto {
+        return subscribersReportService.readJsonFile(followers, followings)
     }
 
     @GetMapping("unsubscribers")
